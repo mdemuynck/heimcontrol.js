@@ -19,7 +19,17 @@ define([ 'duino' ], function(duino) {
 
     this.app = app;
     this.id = this.name.toLowerCase();
+
     this.board = new duino.Board();
+    // this.board.debug = true;
+    function warnNoDuino(e) {
+        console.warn("[WARNING] error while trying to connect to Arduino:")
+        console.warn(" >>> " + e);
+        console.info("[INFO] continuing and hoping for the best...");
+        // FIXME: we should disable this plugin in some way, though
+    }
+    this.board.on('error', warnNoDuino);
+    this.board.setup();
 
     this.pins = {};
     this.pluginHelper = app.get('plugin helper');
@@ -63,7 +73,6 @@ define([ 'duino' ], function(duino) {
    * @param {String} data.value The value to set (0 or 1)
    */
   Arduino.prototype.rcswitch = function(data) {
-
     var that = this;
     this.pluginHelper.findItem(that.collection, data.id, function(err, item, collection) {
       if ((!err) && (item)) {
@@ -82,10 +91,15 @@ define([ 'duino' ], function(duino) {
         }
 
         // Send RC code
-        if (item.value) {
-          return that.pins[item.pin].triState(item.code + "FF0F");
-        } else {
-          return that.pins[item.pin].triState(item.code + "FF00");
+        if (item.rctype == 'binary') {
+          if (item.value) {
+            return that.pins[item.pin].decimal(parseInt(item.binaryOn, 2));
+          } else {
+            return that.pins[item.pin].decimal(parseInt(item.binaryOff, 2));
+          }
+        } else { // assume tristate
+          var fullcode = item.code + (item.value ? item.onsuffix : item.offsuffix)
+          return that.pins[item.pin].triState(fullcode);
         }
       } else {
         console.log(err);
@@ -218,6 +232,40 @@ define([ 'duino' ], function(duino) {
     });
     return callback(null, items);
   }
+
+  /**
+   * API functions of the Arduino Plugin
+   * 
+   * @method api
+   * @param {Object} req The request
+   * @param {Object} res The response
+   */
+
+  Arduino.prototype.api = function(req, res, next) {
+    /*
+     * GET
+     */
+    if (req.method == 'POST') {
+      var that = this;
+      var method = req.body.method;
+      if(method === "rcswitch") {
+        this.app.get('db').collection("Arduino", function(err, collection) {
+            collection.find({}).toArray(function(err, items) {
+              if (!err) {
+              that.beforeRender(items, function() {
+                res.send(200, items);
+                });
+              } else {
+              res.send(500, '[]');
+              }
+              });
+            });
+      } else {
+        next();
+      }
+    }
+  };
+
 
   var exports = Arduino;
 

@@ -50,10 +50,10 @@ require(["jquery", "bootstrap.min", "/socket.io/socket.io.js"], function() {
     function registerSelectSwitch() {
       $('.switch').children('select').change(function() {
         var e = $(this).parent('.switch');
-        e.find('.switch-container').find('div').addClass('hidden');
-        e.find('.switch-container').find('input').val('');
-        e.find('.switch-container').find('input').removeAttr('required', '0');
-        e.find('.switch-container').find('.' + $(this).val()).each(function() {
+        e.children('.switch-container').children('div').addClass('hidden');
+        e.children('.switch-container:not(.no-clear-on-switch)').find('input').val('');
+        e.children('.switch-container').find('input').removeAttr('required', '0');
+        e.children('.switch-container').find('.' + $(this).val()).each(function() {
           var e = $(this);
           e.removeClass('hidden');
           if (e.attr('data-required')=='1') {
@@ -119,7 +119,7 @@ require(["jquery", "bootstrap.min", "/socket.io/socket.io.js"], function() {
         $('.navigation').remove();
         $('#content').empty();
         $('#content').append('<h1>503</h1><h2>I\'m sorry Dave, i\'m afraid i have lost the connection to the server.</h2><p><a href="/login"><h3>Back to Login</h3></a></p>');
-      }, 5000);
+      }, 15000);
     });
 
     // Set login cookie
