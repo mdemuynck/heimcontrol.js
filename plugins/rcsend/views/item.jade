@@ -1,0 +1,3 @@
+div.plugin-container.rcsend
+ each item in items      
+  button.btn.btn-large.socket(type="button", data-socket="rc-send", data-id="#{item._id}", data-value="#{item.value}") #{item.description}
