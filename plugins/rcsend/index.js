@@ -4,7 +4,14 @@ if (typeof define !== 'function') {
 
 define(['child_process'], function(childproc) {
 
-  var _rcsend = "sudo ./rcswitch-pi/sendTriState ";
+  //Tristate codes:
+  /*10001
+A 0FFF0 0FFFF 0F	0FFF0 0FFFF F0
+B 0FFF0 F0FFF 0F	0FFF0 F0FFF F0
+C 0FFF0 FF0FF 0F	0FFF0 FF0FF F0
+D 0FFF0 FFF0F 0F	0FFF0 FF0FF F0*/
+
+  var _rcsend = "sudo ./plugins/rcsend/rcswitch-pi/sendTriState ";
   var _irsend = "irsend send_once Philips ";
   
   var exec = childproc.exec;
@@ -57,9 +64,16 @@ define(['child_process'], function(childproc) {
     var that = this;
     this.pluginHelper.findItem(this.collection, data.id, function(err, item, collection) {
       var command = item.type == "ir" ? _irsend : _rcsend;
+      console.log("Working dir: " + process.cwd());
       console.log('sending via ' + item.type);
       console.log('command: ' + command + item.value);
-      exec(command + item.value);
+      exec(command + item.value, function (error, stdout, stderr) {
+    	console.log('stdout: ' + stdout);
+    	console.log('stderr: ' + stderr);
+    	if (error !== null) {
+      		console.log('exec error: ' + error);
+      		}
+    	});
     });
   };
 
